@@ -7,7 +7,7 @@ module Pencil
       @hostname = hostname
     end
 
-    def observe
+    def resync
       containers = inspect_containers(list_running_containers)
       containers.each_with_object({}) do |container, acc|
 
@@ -24,6 +24,17 @@ module Pencil
           end
         end
 
+      end
+    end
+
+    def get_killed
+      puts "looking into docker events"
+      ::Docker::Event.since (Time.now.to_i - 5) do |event|
+        if event.status == 'die'
+          dead_container = ::Docker::Container.get(event.id)
+          puts dead_container.info['Image']
+          break;
+        end
       end
     end
 
