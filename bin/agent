@@ -3,11 +3,14 @@
 require_relative '../lib/pencil'
 
 puts Pencil::Version.to_s
-
 c = Pencil::Docker.new
+
 while true do
-  p c.observe
+
+  c.observe.each do |id, data|
+    consul = Pencil::Consul.new(host: 'localhost', port: 8500)
+    consul.register_service(service_name: data['image'], host_port: data['host_port'])
+  end
+
   sleep 10
 end
-
-#p = Pencil::Consul.new(host: ENV['hostname'], port: 8500)

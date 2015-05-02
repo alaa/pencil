@@ -13,14 +13,14 @@ module Pencil
 
         ports = container['NetworkSettings']['Ports']
         image = container['Config']['Image']
-        container_id = container['Id'][0..8]
-        acc[container_id] = {}
+        cid = container['Id'][0..8]
 
         ports.each do |service_port, host_port|
           unless host_port.nil?
-            acc[container_id]['service_port'] = service_port.split('/')[0]
-            acc[container_id]['host_port'] = host_port.first['HostPort']
-            acc[container_id]["image"] = image
+            acc[cid] = {}
+            acc[cid]['service_port'] = service_port.split('/').first
+            acc[cid]['host_port'] = host_port.first['HostPort']
+            acc[cid]["image"] = image
           end
         end
 
