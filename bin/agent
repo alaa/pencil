@@ -1,20 +1,21 @@
 #!/usr/bin/env ruby
-
 require_relative '../lib/pencil'
 
 puts Pencil::Version.to_s
+
 docker = Pencil::Docker.new
+consul = Pencil::Consul.new(host: '172.17.22.203', port: 8500)
 
 # Perform Periodic Synchronization
 while true do
 
-  docker.resync.each do |id, data|
-    puts "syncing #{id}"
-    consul = Pencil::Consul.new(host: 'localhost', port: 8500)
-    consul.register_service(service_id: data['Id'],
-                            service_name: data['image'],
-                            host_port: data['host_port'] )
-  end
+  local_containers = docker.resync
+  consul.resync(local_containers)
 
-  sleep 2
+  local_containers.each do |id, data|
+    consul.register_service(service_id: id,
+                            service_name: data['image'],
+                            host_port: data['host_port'])
+  end
+  sleep 30
 end
