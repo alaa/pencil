@@ -9,29 +9,18 @@ module Pencil
     end
 
     def register_service(service_id:, service_name:, host_port:)
-      uri = "http://#{host}:#{port}/v1/catalog/register"
+      uri = "http://#{host}:#{port}/v1/agent/service/register"
       body = {
-        "Datacenter" => "dc1",
-        "Node" => host,
-        "Address" => '127.0.0.1',
-
-        "Service" => {
-          "ID" => service_id,
-          "Service" => service_name,
-          "Address" => host,
-          "Port" => host_port.to_i
+        "ID" => "#{service_name}:#{service_id}",
+        "Name" => service_name,
+        "Port" => host_port.to_i,
+        "Check" => {
+          "Script" => "curl -Ss http://#{host}:#{host_port}",
+          "Interval" => "10s",
         }
       }.to_json
 
-      RestClient.put uri, body, :content_type => :json, :accept => :json
-    end
-
-    def deregister_service(service_name)
-      uri = "http://#{host}:#{port}/v1/catalog/deregister"
-      body = { "Datacenter" => 'dc1',
-               "Node" => host,
-               "ServiceID" => service_name }.to_json
-
+      puts body
       RestClient.put uri, body, :content_type => :json, :accept => :json
     end
 
