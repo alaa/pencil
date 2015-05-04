@@ -7,7 +7,15 @@ and the remote state on Consul registry every (n) seconds. the default is set to
 Pencil never does a bulk syncing but it only syncs the changes wheather they are (additions or deletions)
 on the consul registry which is important for external Load-balancing or service-monitoring.
 
-## Installation
+## Running Pencil (Recommended way)
+
+```
+$ docker run -d \
+    -v /var/run/docker.sock:/tmp/docker.sock \
+    alaa/pencil <consul-registry>
+```
+
+## Running Pencil wihtout Docker
 
 - ``` https://github.com/alaa/pencil.git ```
 
