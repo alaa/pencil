@@ -23,23 +23,28 @@ module Pencil
     private
     attr_accessor :host, :port, :consul_uri
 
+    def consul_image_name(name, port)
+      name.split('/').last.split(':').first + '-' + port
+    end
+
     def register_containers(containers, new_containers)
       containers.each_pair do |key, value|
         if new_containers.include?(key)
           register_container(container_id: key,
                              image_name: value['image'],
-                             host_port: value['host_port'])
+                             host_port: value['host_port'],
+                             service_port: value['service_port'])
         end
       end
     end
 
-    def register_container(container_id:, image_name:, host_port:)
+    def register_container(container_id:, image_name:, host_port:, service_port:)
       puts "+++ " + container_id
       uri = consul_uri + "/v1/agent/service/register"
 
       body = {
         "ID" => container_id,
-        "Name" => image_name,
+        "Name" => consul_image_name(image_name, service_port),
         "Port" => host_port.to_i,
         "Check" => {
           "Script" => "curl -Ss http://#{host}:#{host_port}",
