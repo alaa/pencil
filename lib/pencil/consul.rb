@@ -1,4 +1,5 @@
 require 'rest-client'
+require 'logger'
 
 module Pencil
   class Consul
@@ -7,16 +8,20 @@ module Pencil
       @host = host.nil? ? `hostname` : host
       @port = port
       @consul_uri = "http://#{host}:#{port}"
+      @logger = Logger.new(STDOUT)
     end
 
     def resync(containers)
       containers_ids = containers.keys
+      @logger.info("local container: #{containers_ids}")
       registered_containers = get_registered_containers
 
       stale_containers = registered_containers - containers_ids
+      @logger.info("stale containers: #{stale_containers}")
       deregister_containers(stale_containers)
 
       new_containers = containers_ids - registered_containers
+      @logger.info("new containers: #{new_containers}")
       register_containers(containers, new_containers)
     end
 
@@ -52,7 +57,8 @@ module Pencil
         }
       }.to_json
 
-      RestClient.put uri, body, :content_type => :json, :accept => :json
+      resp = RestClient.put uri, body, :content_type => :json, :accept => :json
+      @logger.info("Consul response: #{resp}")
     end
 
     def get_registered_containers
