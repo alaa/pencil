@@ -30,33 +30,23 @@ module Pencil
     end
 
     def register_service(service_id:, options:)
-      body = {
-        "ID" => service_id,
-        "Name" => consul_image_name(options['image'], options['service_port']),
-        "Port" => options['host_port'].to_i,
-        "Check" => {
-          "Script" => "curl -Ss http://#{host}:#{options['host_port']}",
-          "Interval" => "10s",
-        }
-      }.to_json
+      service_name = consul_image_name(options['image'], options['service_port'])
+      resource = endpoints.register_service(service_id: service_id,
+                                            service_name: service_name,
+                                            options: options)
 
-      APIclient.http(method: :put,
-                     uri: endpoints.consul_register_service_uri,
-                     body: body)
+      APIclient.http(method: resource[:method],
+                     uri: resource[:uri],
+                     body: resource[:body])
       @logger.info "registering: #{service_id}"
     end
 
     def get_registered_services
-      services = APIclient.http(method: :get,
-                                uri: endpoints.consul_services_uri)
+      resource = endpoints.services
+      services = APIclient.http(method: resource[:method],
+                                uri: resource[:uri])
       services.each_with_object([]) do |service, acc|
         acc << service.first
-      end
-    end
-
-    def get_services_ids(local_services)
-      local_services.each_with_object([]) do |(id, options), acc|
-        acc << id
       end
     end
 
@@ -67,9 +57,16 @@ module Pencil
     end
 
     def deregister_service(id)
-      uri = endpoints.consul_deregister_service_uri(id)
-      APIclient.http(method: :get, uri: uri)
+      resource = endpoints.deregister_service(id)
+      APIclient.http(method: resource[:method],
+                     uri: resource[:uri])
       @logger.info "deregistering: #{id}"
+    end
+
+    def get_services_ids(local_services)
+      local_services.each_with_object([]) do |(id, options), acc|
+        acc << id
+      end
     end
 
     def consul_image_name(name, port)
@@ -85,6 +82,5 @@ module Pencil
         remote_services - local_services
       end
     end
-
   end
 end

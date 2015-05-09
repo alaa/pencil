@@ -18,6 +18,5 @@ module Pencil
 
       class Consul::APIclient::InvalidMethod < Exception; end
     end
-
   end
 end
