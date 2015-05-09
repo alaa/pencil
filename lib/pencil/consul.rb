@@ -33,14 +33,14 @@ module Pencil
       service_name = consul_image_name(options['image'], options['service_port'])
       resource = endpoints.register_service(service_id: service_id,
                                             service_name: service_name,
-                                            options: options)
-      APIclient.http(resource: resource)
+                                            host_port: options['host_port'])
+      API::HTTP.request(resource: resource)
       @logger.info "registering: #{service_id}"
     end
 
     def get_registered_services
       resource = endpoints.services
-      services = APIclient.http(resource: resource)
+      services = API::HTTP.request(resource: resource)
       services.each_with_object([]) do |service, acc|
         acc << service.first
       end
@@ -54,7 +54,7 @@ module Pencil
 
     def deregister_service(id)
       resource = endpoints.deregister_service(id)
-      APIclient.http(resource: resource)
+      API::HTTP.request(resource: resource)
       @logger.info "deregistering: #{id}"
     end
 

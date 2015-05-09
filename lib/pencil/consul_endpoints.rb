@@ -6,16 +6,16 @@ module Pencil
         "http://#{host}:#{port}"
       end
 
-      def register_service(service_id:, service_name:, options:)
+      def register_service(service_id:, service_name:, host_port:)
         { uri: url + "/v1/agent/service/register",
           method: :put,
           :body => {
             "ID" => service_id,
             "Name" => service_name,
-            "Port" => options['host_port'].to_i,
+            "Port" => host_port.to_i,
             "Check" => {
-              "Script" => "curl -Ss http://#{host}:#{options['host_port']}",
-              "Interval" => "10s",
+              "Script" => "curl -Ss http://#{host}:#{host_port}",
+              "Interval" => "5s",
             }
           }.to_json
         }
