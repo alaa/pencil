@@ -21,7 +21,7 @@ module Pencil
 
     def register_services(services, new_services)
       services_data = services.select do |key, value|
-        new_services.include? key
+        new_services.include?(key)
       end
 
       services_data.each do |id, options|
@@ -34,17 +34,13 @@ module Pencil
       resource = endpoints.register_service(service_id: service_id,
                                             service_name: service_name,
                                             options: options)
-
-      APIclient.http(method: resource[:method],
-                     uri: resource[:uri],
-                     body: resource[:body])
+      APIclient.http(resource: resource)
       @logger.info "registering: #{service_id}"
     end
 
     def get_registered_services
       resource = endpoints.services
-      services = APIclient.http(method: resource[:method],
-                                uri: resource[:uri])
+      services = APIclient.http(resource: resource)
       services.each_with_object([]) do |service, acc|
         acc << service.first
       end
@@ -58,8 +54,7 @@ module Pencil
 
     def deregister_service(id)
       resource = endpoints.deregister_service(id)
-      APIclient.http(method: resource[:method],
-                     uri: resource[:uri])
+      APIclient.http(resource: resource)
       @logger.info "deregistering: #{id}"
     end
 
