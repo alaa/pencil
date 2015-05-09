@@ -8,8 +8,6 @@ consul = Pencil::Consul.new(host: ARGV[0], port: 8500)
 
 # Perform Periodic Synchronization
 while true do
-  puts "syncing ..."
-
   local_containers = docker.all
   consul.resync(local_containers)
   sleep 10
