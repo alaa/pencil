@@ -1,6 +1,8 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'pencil/docker'
+require 'pencil/api_client'
+require 'pencil/consul_endpoints'
 require 'pencil/consul'
 
 module Pencil

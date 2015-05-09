@@ -2,11 +2,11 @@ require 'rest-client'
 require 'logger'
 
 module Pencil
-
   class Consul
     def initialize(host:, port:)
       @host = host
       @port = port
+      @endpoints = Endpoints.new(host, port)
       @logger = Logger.new(STDOUT)
     end
 
@@ -17,7 +17,7 @@ module Pencil
     end
 
     private
-    attr_accessor :host, :port
+    attr_accessor :host, :port, :endpoints
 
     def register_services(services, new_services)
       services_data = services.select do |key, value|
@@ -40,12 +40,15 @@ module Pencil
         }
       }.to_json
 
-      api_client(method: :put, uri: consul_register_service_uri, body: body)
+      APIclient.http(method: :put,
+                     uri: endpoints.consul_register_service_uri,
+                     body: body)
       @logger.info "registering: #{service_id}"
     end
 
     def get_registered_services
-      services = api_client(method: :get, uri: consul_services_uri)
+      services = APIclient.http(method: :get,
+                                uri: endpoints.consul_services_uri)
       services.each_with_object([]) do |service, acc|
         acc << service.first
       end
@@ -64,51 +67,24 @@ module Pencil
     end
 
     def deregister_service(id)
-      uri = consul_deregister_service_uri(id)
-      api_client(method: :get, uri: uri)
+      uri = endpoints.consul_deregister_service_uri(id)
+      APIclient.http(method: :get, uri: uri)
       @logger.info "deregistering: #{id}"
-    end
-
-    def api_client(method:, uri:, body: nil)
-      case method
-      when :get
-        resp = RestClient.get(uri)
-        JSON.parse(resp) if resp.size > 2
-      when :put
-        resp = RestClient.put(uri, body, content_type: :json, accept: :json)
-      else
-        fail 'consul exception'
-      end
     end
 
     def consul_image_name(name, port)
       name.split('/').last.split(':').first + '-' + port
     end
 
-    def consul_url
-      "http://#{host}:#{port}"
+    Services = Struct.new(:local_services, :remote_services) do
+      def to_register
+        local_services - remote_services
+      end
+
+      def to_deregister
+        remote_services - local_services
+      end
     end
 
-    def consul_register_service_uri
-      consul_url + "/v1/agent/service/register"
-    end
-
-    def consul_deregister_service_uri(service_id)
-      consul_url + "/v1/agent/service/deregister/#{service_id}"
-    end
-
-    def consul_services_uri
-      consul_url + "/v1/agent/services"
-    end
-  end
-
-  Services = Struct.new(:local_services, :remote_services) do
-    def to_register
-      local_services - remote_services
-    end
-
-    def to_deregister
-      remote_services - local_services
-    end
   end
 end
