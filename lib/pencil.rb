@@ -4,6 +4,7 @@ require 'pencil/docker'
 require 'pencil/api_client'
 require 'pencil/consul_endpoints'
 require 'pencil/consul'
+require 'pencil/agent'
 
 module Pencil
   class Version
