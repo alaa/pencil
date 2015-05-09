@@ -33,7 +33,8 @@ module Pencil
       service_name = consul_image_name(options['image'], options['service_port'])
       resource = endpoints.register_service(service_id: service_id,
                                             service_name: service_name,
-                                            host_port: options['host_port'])
+                                            host_port: options['host_port'],
+                                            health_check_interval: 5)
       API::HTTP.request(resource: resource)
       @logger.info "registering: #{service_id}"
     end

@@ -6,7 +6,7 @@ module Pencil
         "http://#{host}:#{port}"
       end
 
-      def register_service(service_id:, service_name:, host_port:)
+      def register_service(service_id:, service_name:, host_port:, health_check_interval:)
         { uri: url + "/v1/agent/service/register",
           method: :put,
           :body => {
@@ -15,7 +15,7 @@ module Pencil
             "Port" => host_port.to_i,
             "Check" => {
               "Script" => "curl -Ss http://#{host}:#{host_port}",
-              "Interval" => "5s",
+              "interval" => "#{health_check_interval}s"
             }
           }.to_json
         }
