@@ -14,6 +14,7 @@ module Pencil
         ports = container['NetworkSettings']['Ports']
         image = container['Config']['Image']
         cid = container['Id']
+        env = container['Config']['Env']
 
         ports.each do |service_port, host_port|
           unless host_port.nil?
@@ -21,6 +22,7 @@ module Pencil
             acc[cid]['service_port'] = service_port.split('/').first
             acc[cid]['host_port'] = host_port.first['HostPort']
             acc[cid]["image"] = image
+            acc[cid]["env"] = env
           end
         end
 

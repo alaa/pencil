@@ -6,7 +6,7 @@ module Pencil
           case resource[:method]
           when :get
             resp = RestClient.get(resource[:uri])
-            JSON.parse(resp) if resp.size > 2
+            JSON.parse(resp) if resp.size > 0
 
           when :put
             resp = RestClient.put(resource[:uri],

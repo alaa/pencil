@@ -33,6 +33,18 @@ $ docker run -d \
 
 Watch the changes on the stdout and on the consul web-ui.
 
+# Custom Tags to register on Consul
+Just pass an environment variable that starts with "SRV_". For example:
+``` docker run -P nginx -e "SRV_CLUSTER=staging" ```
+
+# Custom Health Checks for Consul
+We can also pass custom health check to Consul via docker container environment variables.
+Pencil fills out the `host` and `port` dynamicall on the run time. For example:
+
+``` docker run -P nginx -e "SRV_HEALTH_CHECK='curl -Ss http://%<host>s:%<port>s/health'" ```
+Pencil will replace the host with the ARGV[0] and the port will be filled dynamically from the
+container.PortMapping array
+
 ## TODO
 
 - Refactoring

@@ -31,10 +31,16 @@ module Pencil
 
     def register_service(service_id:, options:)
       service_name = consul_image_name(options['image'], options['service_port'])
+
+      service_check = health_check(options['env'], options['host_port'])
+
       resource = endpoints.register_service(service_id: service_id,
                                             service_name: service_name,
                                             host_port: options['host_port'],
-                                            health_check_interval: 5)
+                                            health_check: service_check,
+                                            health_check_interval: 5,
+                                            tags: pencil_env(options['env']))
+
       API::HTTP.request(resource: resource)
       @logger.info "registering: #{service_id}"
     end
@@ -45,6 +51,38 @@ module Pencil
       services.each_with_object([]) do |service, acc|
         acc << service.first
       end
+    end
+
+    # Extract pencil related variables starting with SRV_
+    def pencil_env(env)
+      vars = []
+      env.each do |e|
+        e =~ /^SRV_/i ? vars << e : ""
+      end
+      vars
+    end
+
+    # Extract health check script from env, if not passed fall back to the
+    # default health check
+    def health_check(env, port)
+      hash = Hash.new
+      vars = pencil_env(env)
+
+      vars.each do |var|
+        key, value = var.split('=')
+        hash[key] = value
+      end
+
+      if hash.has_key?('SRV_HEALTH_CHECK')
+        return check_formatter(hash['SRV_HEALTH_CHECK'], host, port)
+      end
+
+      check_formatter("curl -Ss %<host>s:%<port>s", host, port)
+    end
+
+    # Replace Check variables references with their corresponding values
+    def check_formatter(script, host, port)
+      sprintf(script, {host: host, port: port})
     end
 
     def deregister_services(ids)
