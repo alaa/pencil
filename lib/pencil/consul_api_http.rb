@@ -2,15 +2,15 @@ module Pencil
   class Consul
     module API
       class HTTP
-        def self.request(resource: resource)
-          case resource[:method]
+        def self.request(body:)
+          case body[:method]
           when :get
-            resp = RestClient.get(resource[:uri])
-            JSON.parse(resp) if resp.size > 2
+            resp = RestClient.get(body[:uri])
+            JSON.parse(resp) if resp.size > 0
 
           when :put
-            resp = RestClient.put(resource[:uri],
-                                  resource[:body],
+            resp = RestClient.put(body[:uri],
+                                  body[:body],
                                   content_type: :json,
                                   accept: :json)
           else

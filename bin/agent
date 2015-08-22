@@ -3,6 +3,6 @@ require_relative '../lib/pencil'
 
 puts Pencil::Version.to_s
 
-docker = Pencil::Docker.new
+docker = Pencil::Docker.new(host: ARGV[0])
 consul = Pencil::Consul.new(host: ARGV[0], port: 8500)
 Pencil::Agent.run(docker: docker, backend: consul, interval: 10)
