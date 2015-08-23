@@ -62,11 +62,5 @@ module Pencil
       API::HTTP.request(body: resource)
       @logger.info "deregistering: #{id}"
     end
-
-    def get_services_ids(containers)
-      containers.each_with_object([]) do |(id, _), acc|
-        acc << id
-      end
-    end
   end
 end
