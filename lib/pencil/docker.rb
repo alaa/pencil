@@ -47,16 +47,42 @@ module Pencil
       end
     end
 
+    # Construct and validate Tags
     def extract_tags(env_vars)
       env_vars.each_with_object([]) do |var, tags|
-        var =~ /^SRV_/ ? tags << var : ""
+        parts = var.split('=')
+        tag_key, tag_value = parts[0], parts[1]
+
+        # SRV_HEALTH_CHECK does not need to match the tags filter regex becuase we need
+        # to write the script health checks and use special chars.
+        if tag_key == "SRV_HEALTH_CHECK"
+          valid_tag_key?(tag_key) ? tags << var : ""
+        end
+
+        # All other SRV_ tags including SRV_NAME need to obey the validation rules
+        # to avoid producing bugs on the external services that parses them.
+        if valid_tag_key?(tag_key) && valid_tag_value?(tag_value)
+          tags << var
+        end
       end
+    end
+
+    def valid_tag_value?(name)
+      !name.nil? &&
+      name.length.between?(3, 40) &&
+      !(name =~ /^[a-z0-9-]+[a-z0-9]$/).nil?
+    end
+
+    def valid_tag_key?(tag_key)
+      !tag_key.nil? &&
+      tag_key.length.between?(5, 40) &&
+      !(tag_key =~ /^SRV_[A-Z0-9_]+[A-Z0-9]$/).nil?
     end
 
     # Construct Service Name
     def service_name(tags, image, port)
       tags.each do |tag|
-        if tag =~ /^SRV_NAME/
+        if tag =~ /^SRV_NAME=/
           name = tag.split('=')[1]
           return name
         end
