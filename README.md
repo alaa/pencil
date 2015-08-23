@@ -28,8 +28,17 @@ observe the contaners state on the host.
 
 ### Consul Tags:
 You can pass array of strings to [Consul Tags](https://www.consul.io/docs/agent/http/agent.html#agent_service_register) using container environment variables.
-All tags should start with `SRV_`
-For example:  `docker run -P nginx -e "SRV_CLUSTER=staging"`
+
+- All tags should start with `SRV_`
+- All tags keys should be passed as upper case letters as `SRV_TAG` not `SRV_tag`
+
+- Tag keys should match the following regex: `/^SRV_[A-Z0-9_]+[A-Z0-9]$/`
+- Tag keys should be greater than `5 chars` and less than `40 chars`
+
+- Tag values should match the following regex: `/^[a-z0-9_]+[a-z0-9]$/`
+- Tag values should be greater than `3 chars` and less than `40 chars`
+
+For example:  `docker run -P nginx -e "SRV_CLUSTER=staging_01"`
 
 
 ### Consul Service Name:
