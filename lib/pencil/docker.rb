@@ -70,13 +70,13 @@ module Pencil
     def valid_tag_value?(name)
       !name.nil? &&
       name.length.between?(3, 40) &&
-      !(name =~ /^[a-z0-9-]+[a-z0-9]$/).nil?
+      !(name =~ /^[a-z0-9\-_]+[a-z0-9]$/).nil?
     end
 
     def valid_tag_key?(tag_key)
       !tag_key.nil? &&
       tag_key.length.between?(5, 40) &&
-      !(tag_key =~ /^SRV_[A-Z0-9_]+[A-Z0-9]$/).nil?
+      !(tag_key =~ /^SRV_[A-Z0-9\-_]+[A-Z0-9]$/).nil?
     end
 
     # Construct Service Name
