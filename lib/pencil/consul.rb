@@ -1,5 +1,4 @@
 require 'rest-client'
-require 'logger'
 
 module Pencil
   class Consul
@@ -7,7 +6,6 @@ module Pencil
       @host = host
       @port = port
       @endpoints = Endpoints.new(host, port)
-      @logger = Logger.new(STDOUT)
     end
 
     def resync(containers)
@@ -40,7 +38,7 @@ module Pencil
                                             tags: options['tags'])
 
       API::HTTP.request(body: resource)
-      @logger.info "registering: #{service_id}"
+      Pencil.logger.info "registering: #{service_id}"
     end
 
     def get_registered_services_ids
@@ -60,7 +58,7 @@ module Pencil
     def deregister_service(id)
       resource = endpoints.deregister_service(id)
       API::HTTP.request(body: resource)
-      @logger.info "deregistering: #{id}"
+      Pencil.logger.info "deregistering: #{id}"
     end
   end
 end

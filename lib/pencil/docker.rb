@@ -2,7 +2,6 @@ require 'docker'
 
 module Pencil
   class Docker
-
     def initialize(host:)
       @host = host
     end
@@ -53,14 +52,10 @@ module Pencil
         parts = var.split('=')
         tag_key, tag_value = parts[0], parts[1]
 
-        # SRV_HEALTH_CHECK does not need to match the tags filter regex becuase we need
-        # to write the script health checks and use special chars.
         if tag_key == "SRV_HEALTH_CHECK"
           valid_tag_key?(tag_key) ? tags << var : ""
         end
 
-        # All other SRV_ tags including SRV_NAME need to obey the validation rules
-        # to avoid producing bugs on the external services that parses them.
         if valid_tag_key?(tag_key) && valid_tag_value?(tag_value)
           tags << var
         end
@@ -69,14 +64,14 @@ module Pencil
 
     def valid_tag_value?(name)
       !name.nil? &&
-      name.length.between?(3, 40) &&
-      !(name =~ /^[a-z0-9\-_]+[a-z0-9]$/).nil?
+        name.length.between?(3, 40) &&
+        !(name =~ /^[a-z0-9\-_]+[a-z0-9]$/).nil?
     end
 
     def valid_tag_key?(tag_key)
       !tag_key.nil? &&
-      tag_key.length.between?(5, 40) &&
-      !(tag_key =~ /^SRV_[A-Z0-9\-_]+[A-Z0-9]$/).nil?
+        tag_key.length.between?(5, 40) &&
+        !(tag_key =~ /^SRV_[A-Z0-9\-_]+[A-Z0-9]$/).nil?
     end
 
     # Construct Service Name
@@ -94,7 +89,7 @@ module Pencil
       image.split('/').last.split(':').first + '-' + port
     end
 
-    # Construct Check script
+    # Construct HealthCheck script
     def check(tags, host, port)
       tags.each_with_object([]) do |tag, checks|
         if tag =~ /^SRV_HEALTH_CHECK/
@@ -107,6 +102,9 @@ module Pencil
 
     def check_formatter(script, host, port)
       sprintf(script, {host: host, port: port})
+    rescue => e
+      Pencil.logger.error(e.message)
+      check_formatter(default_health_check_script, host, port)
     end
 
     def default_health_check_script
