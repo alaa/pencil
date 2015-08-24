@@ -10,10 +10,10 @@ module Pencil
       containers = inspect_containers(list_running_containers)
       containers.each_with_object({}) do |container, acc|
 
-        ports = container['NetworkSettings']['Ports']
+        ports = container['NetworkSettings']['Ports'] || []
         image = container['Config']['Image']
         cid = container['Id']
-        env = container['Config']['Env']
+        env = container['Config']['Env'] || []
         tags = extract_tags(env)
 
         ports.each do |service_port, host_port|
