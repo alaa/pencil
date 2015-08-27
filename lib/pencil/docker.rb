@@ -52,7 +52,7 @@ module Pencil
         parts = var.split('=')
         tag_key, tag_value = parts[0], parts[1]
 
-        if tag_key == "SRV_HEALTH_CHECK"
+        if tag_key == "SERVICE_HEALTH_CHECK"
           valid_tag_key?(tag_key) ? tags << var : ""
         end
 
@@ -70,14 +70,14 @@ module Pencil
 
     def valid_tag_key?(tag_key)
       !tag_key.nil? &&
-        tag_key.length.between?(5, 40) &&
-        !(tag_key =~ /^SRV_[A-Z0-9\-_]+[A-Z0-9]$/).nil?
+        tag_key.length.between?(9, 40) &&
+        !(tag_key =~ /^SERVICE_[A-Z0-9\-_]+[A-Z0-9]$/).nil?
     end
 
     # Construct Service Name
     def service_name(tags, image, port)
       tags.each do |tag|
-        if tag =~ /^SRV_NAME=/
+        if tag =~ /^SERVICE_NAME=/
           name = tag.split('=')[1]
           return name
         end
@@ -92,7 +92,7 @@ module Pencil
     # Construct HealthCheck script
     def check(tags, host, port)
       tags.each_with_object([]) do |tag, checks|
-        if tag =~ /^SRV_HEALTH_CHECK/
+        if tag =~ /^SERVICE_HEALTH_CHECK/
           script = tag.split('=')[1]
           return check_formatter(script, host, port)
         end
