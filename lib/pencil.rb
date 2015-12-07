@@ -6,6 +6,7 @@ require 'pencil/consul_endpoints'
 require 'pencil/consul'
 require 'pencil/agent'
 require 'pencil/logging'
+require 'pencil/supervisor'
 
 module Pencil
   include Logging
