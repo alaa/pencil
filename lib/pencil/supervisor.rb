@@ -21,7 +21,7 @@ module Pencil
 
     def run
       runnable.call
-    rescue SystemExit, Interrupt
+    rescue SystemExit, Interrupt, SignalException
       raise
     rescue Exception => e
       Pencil.logger.error("Supervisor: rescued error #{e.inspect}")
