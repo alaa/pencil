@@ -16,7 +16,7 @@ module Pencil
         env = container['Config']['Env'] || []
         tags = extract_tags(env)
 
-        ports.each do |service_port, host_port|
+        ports.entries.sort { |a,b| a[1] <=> b[1] }.each do |service_port, host_port|
           unless host_port.nil?
             s_port = service_port.split('/').first
             h_port = host_port.first['HostPort']
