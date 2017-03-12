@@ -16,25 +16,34 @@ module Pencil
         env = container['Config']['Env'] || []
         tags = extract_tags(env)
 
-        ports.each do |service_port, host_port|
-          unless host_port.nil?
-            s_port = service_port.split('/').first
-            h_port = host_port.first['HostPort']
-
-            acc[cid] = {}
-            acc[cid]['service_port'] = s_port
-            acc[cid]['host_port'] = h_port
-            acc[cid]["image"] = image
-            acc[cid]["tags"] = tags
-            acc[cid]["check"] = check(tags, host, h_port)
-            acc[cid]["name"] = service_name(tags, image, s_port)
-          end
+        sorted_ports = sort_by_service_port(ports)
+        unless sorted_ports.empty?
+          s_port = sorted_ports.keys.last.to_s
+          h_port = sorted_ports.values.last.to_s
+          acc[cid] = { 'service_port' => s_port,
+                       'host_port'    => h_port,
+                       'image'        => image,
+                       'tags'         => tags,
+                       'check'        => check(tags, host, h_port),
+                       'name'         => service_name(tags, image, s_port) }
         end
       end
     end
 
     private
     attr_accessor :host
+
+    def sort_by_service_port(ports)
+      acc = {}
+      ports.each do |service_port, host_port|
+        unless host_port.nil?
+          s_port = service_port.split('/').first.to_i
+          h_port = host_port.first['HostPort'].to_i
+          acc[s_port] = h_port
+        end
+      end
+      acc.sort_by { |k,v| k }.to_h
+    end
 
     def list_running_containers
       ::Docker::Container.all
