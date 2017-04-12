@@ -74,7 +74,7 @@ module Pencil
     def valid_tag_value?(name)
       !name.nil? &&
         name.length.between?(3, 40) &&
-        !(name =~ /^[a-z0-9\-_]+[a-z0-9]$/).nil?
+        !(name =~ /^[a-z0-9\-_\.,\/]+[a-z0-9]$/).nil?
     end
 
     def valid_tag_key?(tag_key)
