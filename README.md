@@ -1,11 +1,12 @@
 # Pencil
 
 Pencil is a simple service-registration tool for Docker and uses Consul as a backend for
-Service-Discovery. It basically syncronizes the "diff" between the local state (Running Docker Containers)
-and the remote state on Consul registry every (n) seconds. The default is set to 10s.
+Service-Discovery. It syncronizes only the delta `∆` between the local state on every node
+(Running Docker Containers) and the remote state on Consul registry every (n) seconds.
+The default is set to `10s`.
 
-Pencil does not perform bulk syncing, it only syncronizes the changes the additions or deletions
-to Consul which is highly important for external Load-balancing and service-monitoring.
+Pencil have been used in many different production systems and successfully synchronized hundreds of
+thouthands of contianers without problems.
 
 ## Run Pencil from DockerHub image:
 ```
@@ -31,7 +32,7 @@ docker run -d \
 we need to mount the docker-engine socket into Pencil container in order to give it a privilige to
 observe the contaners state on the host.
 
-## SERVICE_ as a convention:
+## SERVICE_ lable as a convention:
 
 ### Consul Tags:
 You can pass array of strings to [Consul Tags](https://www.consul.io/docs/agent/http/agent.html#agent_service_register) using container environment variables.
@@ -43,10 +44,9 @@ You can pass array of strings to [Consul Tags](https://www.consul.io/docs/agent/
 - Tag keys should be greater than `5 chars` and less than `40 chars`
 
 - Tag values should match the following regex: `/^[a-z0-9-_]+[a-z0-9]$/`
-- Tag values should be greater than `3 chars` and less than `40 chars`
+- Tag values should be greater than `3 chars` and less than `200 chars`
 
 For example:  `docker run -P -e "SERVICE_CLUSTER=staging_01" nginx`
-
 
 ### Consul Service Name:
 By default Pencil registers every docker contianer that exposes a `TCP Port`. and uses the
@@ -64,7 +64,11 @@ For example: `docker run -P -e 'SERVICE_NAME=testing-microservice' nginx`
 You can pass custom health check to Consul via docker container environment variables.
 Pencil fills out the `host` and `port` dynamically on the run time. For example:
 
+##### HTTP HealthCheck example:
 `docker run -P nginx -e "SERVICE_HEALTH_CHECK='curl -Ss http://%<host>s:%<port>s/health'"`
+
+##### TCP HealthCheck example:
+`docker run -P nginx -e "SERVICE_HEALTH_CHECK='nc -vz %<host>s %<port>s'"`
 
 Pencil replaces the `host` with the value of `<consul-registry-address>` passed to the `agent`
 and replaces the `port` dynamically by inspecting `container.PortMapping`
@@ -72,4 +76,3 @@ and replaces the `port` dynamically by inspecting `container.PortMapping`
 ## TODO
 - Refactoring
 - Write tests
-
