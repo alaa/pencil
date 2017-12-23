@@ -73,6 +73,73 @@ Pencil fills out the `host` and `port` dynamically on the run time. For example:
 Pencil replaces the `host` with the value of `<consul-registry-address>` passed to the `agent`
 and replaces the `port` dynamically by inspecting `container.PortMapping`
 
+### Registering Consul Services on Nginx (Ingress) using Consul-Template.
+
+The following example uses `SERVICE_` lables in a way to build nginx ingress rules:
+I will exaplain here the lables I choose to use for this particular example:
+
+`SERVICE_SCOPE`: If I want to register only public services on this ingress or only the internal services.
+
+`SERVICE_TYPE` : If I want to configure HTTP or TCP or WebSockets in a specific blocks.
+
+`SERVICE_NAME` : The service name I choose to use as sub-domain on the ingress config: i.e: nginx virtual host
+
+`SERVICE_ACL` : If I want to pass service Access List, especeially if I am exposing or registering this services on a public nginx ingress.
+
+`@upstream_domain` and `@server_name`: These are just variables can be configured to set the domain name you wish to expose your ingress on.
+You can replace these variavles starting with `@` to your desired static values.
+
+
+```
+{{ range services }}
+{{ $tags := .Tags | join "," }}
+  {{ if $tags | regexMatch "SERVICE_SCOPE=public" }}
+
+    {{ if $tags | regexMatch "SERVICE_TYPE=(http)" }}
+      {{ $services := service .Name }}
+      {{ $len := len $services }}
+        {{ if gt $len 0 }}
+          upstream {{.Name}}.<%=@upstream_domain%> {
+          {{ range service .Name }}
+            server {{.Address}}:{{.Port}};
+          {{end}}
+          }
+        {{end}}
+    {{ end }}
+
+  {{ end }}
+{{ end }}
+
+{{ range services }}
+{{ $tags := .Tags | join "," }}
+  {{ if $tags | regexMatch "SERVICE_SCOPE=public" }}
+
+    {{ if $tags | regexMatch "SERVICE_TYPE=(http)" }}
+      {{ $services := service .Name }}
+      {{ $len := len $services }}
+        {{ if gt $len 0 }}
+        server {
+          server_name <%=@server_names%>;
+
+          # Fetch Service ACL
+          {{range $tag := .Tags}}
+            {{ if $tag | regexMatch "SERVICE_ACL" }}
+              {{ $acls := (index ($tag | split "=") 1) | split "," }}
+                {{ range $acls }} allow {{ . }}; {{ end }}
+                  deny all;
+            {{end}}
+          {{end}}
+
+          location / {
+            proxy_pass http://{{.Name}}.<%=@upstream_domain%>;
+          }
+        }
+        {{end}}
+    {{ end }}
+  {{ end }}
+{{ end }}
+```
+
 ## TODO
 - Refactoring
 - Write tests
